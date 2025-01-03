@@ -1,0 +1,37 @@
+on:
+  workflow_dispatch:
+    inputs:
+      submodule:
+        type: choice
+        description: "Select an option"
+        options:
+          - "Only print current and available versions"
+          - spdlog
+          - extra_cmake_modules
+          - kdalgorithms
+          - ksyntaxhighlighting
+          - nlohmann_json
+          - pugixml
+          - tree_sitter
+          - tree_sitter_cpp
+          - tree_sitter_qmljs
+
+name: bump submodules
+jobs:
+  dependency-bump:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout sources
+        run: |
+          git clone https://github.com/KDAB/knut.git && cd knut
+          pwd
+          git submodule update --init --force --recursive -- 3rdparty/*
+          git clone https://github.com/KDABLabs/ci-release-tools.git
+
+      - name: Print current and available versions
+        if: inputs.submodule == 'Only print current and available versions'
+        run: |
+          cd knut/
+          python3 ./ci-release-tools/src/update_dependencies.py --print-dependency-versions Knut --repo-path .
+        env:
+          GH_TOKEN: ${{ github.token }}
